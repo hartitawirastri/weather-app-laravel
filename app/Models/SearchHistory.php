@@ -10,9 +10,6 @@ class SearchHistory extends Model
      * Kolom yang boleh diisi secara massal (mass assignment).
      * Ini wajib diatur untuk keamanan aplikasi Laravel.
      */
-    protected $fillable = [
-        'city_name',
-        'temperature',
-        'description',
-    ];
+    protected $fillable = ['city_name', 'temperature', 'description'];
 }
+

@@ -22,14 +22,12 @@ class ApiController extends Controller
     {
         $request->validate([
             'city_name'   => 'required|string|max:255',
-            'temperature' => 'required|integer',
-            'description' => 'required|string|max:255',
+            'temperature' => 'required|numeric',
         ]);
 
         $history = SearchHistory::create([
             'city_name'   => $request->city_name,
             'temperature' => $request->temperature,
-            'description' => $request->description,
         ]);
 
         return response()->json([
@@ -51,12 +49,12 @@ class ApiController extends Controller
         }
 
         $request->validate([
-            'city_name'   => 'sometimes|string|max:255',
-            'temperature' => 'sometimes|integer',
-            'description' => 'sometimes|string|max:255',
+            'city_name' => 'required|string|max:255',
         ]);
 
-        $history->update($request->only(['city_name', 'temperature', 'description']));
+        $history->update([
+            'city_name' => $request->city_name,
+        ]);
 
         return response()->json([
             'status'  => 'success',

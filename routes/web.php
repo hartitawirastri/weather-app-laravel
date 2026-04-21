@@ -18,3 +18,6 @@ Route::post('/check', [WeatherController::class, 'check'])->name('weather.check'
 // Hapus satu data riwayat pencarian berdasarkan ID
 // Menggunakan method DELETE sesuai konvensi RESTful Laravel
 Route::delete('/history/{id}', [WeatherController::class, 'destroy'])->name('weather.destroy');
+
+Route::post('/', [WeatherController::class, 'index']);
+
