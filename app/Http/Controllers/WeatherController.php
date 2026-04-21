@@ -4,24 +4,27 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use App\Models\SearchHistory;
 
 class WeatherController extends Controller
 {
     /**
-     * Menampilkan halaman utama aplikasi cuaca.
+     * Menampilkan halaman utama sekaligus daftar riwayat pencarian (READ).
      */
     public function index()
     {
-        return view('weather.index');
+        // Ambil semua riwayat, diurutkan dari yang terbaru
+        $histories = SearchHistory::latest()->get();
+
+        return view('weather.index', compact('histories'));
     }
 
     /**
-     * Mengambil data cuaca dari OpenWeatherMap API
-     * berdasarkan nama kota yang dikirim oleh user.
+     * Mengambil data cuaca dari API dan menyimpan riwayat pencarian (CREATE).
      */
     public function check(Request $request)
     {
-        // 1. Validasi input: pastikan nama kota tidak kosong
+        // 1. Validasi input
         $request->validate([
             'city' => 'required|string|max:100',
         ], [
@@ -35,11 +38,13 @@ class WeatherController extends Controller
         $response = Http::get('https://api.openweathermap.org/data/2.5/weather', [
             'q'     => $city,
             'appid' => $apiKey,
-            'units' => 'metric',  // Suhu dalam Celsius
-            'lang'  => 'id',      // Deskripsi cuaca dalam Bahasa Indonesia
+            'units' => 'metric',
+            'lang'  => 'id',
         ]);
 
-        // 3. Tangani respons: sukses atau gagal
+        // 3. Ambil riwayat (selalu diambil agar tabel selalu tampil)
+        $histories = SearchHistory::latest()->get();
+
         if ($response->successful()) {
             $data = $response->json();
 
@@ -51,12 +56,35 @@ class WeatherController extends Controller
                 'icon'        => $data['weather'][0]['icon'],
             ];
 
-            return view('weather.index', compact('weather'));
+            // 4. Simpan ke database (CREATE)
+            SearchHistory::create([
+                'city_name'   => $weather['city'],
+                'temperature' => $weather['temperature'],
+                'description' => $weather['description'],
+            ]);
+
+            // Refresh riwayat setelah data baru disimpan
+            $histories = SearchHistory::latest()->get();
+
+            return view('weather.index', compact('weather', 'histories'));
         }
 
-        // Jika kota tidak ditemukan atau terjadi error lain
+        // Jika kota tidak ditemukan
         $errorMessage = 'Kota tidak ditemukan. Periksa kembali nama kota Anda.';
 
-        return view('weather.index', compact('errorMessage'))->with('city', $city);
+        return view('weather.index', compact('errorMessage', 'histories'));
+    }
+
+    /**
+     * Menghapus satu data riwayat pencarian berdasarkan ID (DELETE).
+     */
+    public function destroy($id)
+    {
+        $history = SearchHistory::findOrFail($id);
+        $history->delete();
+
+        // Redirect kembali ke halaman utama dengan pesan sukses
+        return redirect()->route('weather.index')
+                         ->with('success', 'Riwayat pencarian berhasil dihapus.');
     }
 }
