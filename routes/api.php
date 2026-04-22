@@ -3,6 +3,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ApiController;
+use App\Http\Controllers\Api\WeatherApiController;
 
 // GET - Ambil semua riwayat
 Route::get('/histories', [ApiController::class, 'index']);
@@ -15,3 +16,6 @@ Route::put('/histories/{id}', [ApiController::class, 'update']);
 
 // DELETE - Hapus riwayat
 Route::delete('/histories/{id}', [ApiController::class, 'destroy']);
+
+Route::apiResource('weather', WeatherApiController::class);
+

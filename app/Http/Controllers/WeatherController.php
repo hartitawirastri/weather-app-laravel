@@ -8,20 +8,18 @@ use App\Models\SearchHistory;
 
 class WeatherController extends Controller
 {
-    /**
-     * Menampilkan halaman utama sekaligus daftar riwayat pencarian (READ).
-     */
+    //Menampilkan halaman utama sekaligus daftar riwayat pencarian (READ)
+
     public function index()
     {
         // Ambil semua riwayat, diurutkan dari yang terbaru
         $histories = SearchHistory::latest()->get();
-
         return view('weather.index', compact('histories'));
     }
 
-    /**
-     * Mengambil data cuaca dari API dan menyimpan riwayat pencarian (CREATE).
-     */
+    
+    //Mengambil data cuaca dari API dan menyimpan riwayat pencarian (CREATE).
+     
     public function check(Request $request)
     {
         // 1. Validasi input
@@ -34,7 +32,7 @@ class WeatherController extends Controller
         $city   = $request->input('city');
         $apiKey = env('OPENWEATHER_API_KEY');
 
-        // 2. Kirim request ke OpenWeatherMap menggunakan Laravel HTTP Client
+        // 2. Kirim request ke OpenWeatherMap
         $response = Http::get('https://api.openweathermap.org/data/2.5/weather', [
             'q'     => $city,
             'appid' => $apiKey,
@@ -42,7 +40,7 @@ class WeatherController extends Controller
             'lang'  => 'id',
         ]);
 
-        // 3. Ambil riwayat (selalu diambil agar tabel selalu tampil)
+        // 3. Ambil riwayat 
         $histories = SearchHistory::latest()->get();
 
         if ($response->successful()) {
@@ -63,7 +61,7 @@ class WeatherController extends Controller
                 'description' => $weather['description'],
             ]);
 
-            // Refresh riwayat setelah data baru disimpan
+            // Refresh riwayat setelah data baru disimpa
             $histories = SearchHistory::latest()->get();
 
             return view('weather.index', compact('weather', 'histories'));
@@ -75,9 +73,8 @@ class WeatherController extends Controller
         return view('weather.index', compact('errorMessage', 'histories'));
     }
 
-    /**
-     * Menghapus satu data riwayat pencarian berdasarkan ID (DELETE).
-     */
+    //Menghapus satu data riwayat pencarian berdasarkan id (DELETE)
+
     public function destroy($id)
     {
         $history = SearchHistory::findOrFail($id);
